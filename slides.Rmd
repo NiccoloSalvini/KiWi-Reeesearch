@@ -1,0 +1,826 @@
+---
+title: "KiWi-Search"
+subtitle: "House Price Comparator"
+author: "Diedziul ⚔ Salvini"
+institute: "Universita Cattolicà Del Sacro Cuore"
+date: "2019/11/18 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    css: [default, hygge , middlebury-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 300px
+background-position: 50% 60%
+
+# KiWi Logo
+
+### Designed by Consumers for Consumers 
+```{r include=FALSE}
+libs = c("rvest", "magrittr", "stringr", "httr", "furrr", "plotly", "ggplot2", "DT", "readxl", "dplyr")
+lapply(libs, require, character.only = TRUE)
+```
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+  
+# Accomodation in Milan is a Mess
+##Socio-Economic Circumstances:
+- Too much *Demand* wrt to the available *Offer* 
+
+--
+
+- Rent Prices, for the same reason, are .red[**Overshooted**]
+  
+--
+  
+- .red[**Condominium**] is a really tough component of the monthly budget and actually It does not make so much sense
+
+--
+  
+- Asymmetry of information between you and the agency Advisor
+
+--
+  
+- Time factor: you are in a Hurry, houseolds are **Not**
+  
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+  
+# The questions you come up 
+##The most of us:
+  
+- Where do phisically I have to search?  --> **Immobiliare.it**<sup>[1]</sup> 
+  
+--
+  
+- Where do I need my apt to be? --> **select zone** 
+  
+--
+  
+- Once you have spotted it '(if you made it') you should verify *if it is a good deal*
+  
+--
+
+  
+- Are they trying to steal my money? Am I going to pay a fair price?
+  
+--
+  
+- Hey, **I REALLY NEED SOMEONE TO TELL ME IF IT IS GOOD OR NOT**, let's find something which is similar to my option, oh I would say a *Comparable*
+
+--
+
+- Do you know how many are the chances to find a **Comparable** ?
+
+.footnote[
+[1] Here it is [immobiliare](https://www.immobiliare.it/), n1 player in online mrkt
+
+]
+
+---
+background-image: url(https://video-images.vice.com/_uncategorized/1498664480808-Screen-Shot-2017-06-28-at-164017.png)
+background-size: 700px
+---
+# Odds
+
+Now let's try this:
+*TRY* to compute the probability to find an apartement given some certain characteristics (even location) equal to someone else with the **SAME** chars
+
+- Randomly select 1 obs from the dataset
+
+--
+
+- Filter the dataset given the characteristics *(rand selct)* both .red[*Streched*] and .blue[*Strict*]
+
+--
+
+- Compare the `len` output of the `vec`  wrt to dataset `len`
+
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# Make a **Comparison**!
+
+```{r include=FALSE}
+dataset = read_excel('dataset finale.xlsx') 
+attach(dataset)
+```
+
+```{r eval=require('readxl'), echo=FALSE, warning=FALSE, tidy=FALSE}
+dataset$tpprop = as.factor(dataset$tpprop)
+dataset$status = as.factor(dataset$status)
+dataset$heating = as.factor(dataset$heating)
+dataset$ac = as.factor(dataset$ac)
+dataset$enclass = as.factor(dataset$enclass)
+dataset$contr = as.factor(dataset$contr)
+dataset$furnished = as.factor(dataset$furnished)
+dataset$kitchen = as.factor(dataset$kitchen)
+dataset$nroom = as.factor(dataset$nroom)
+dataset$lat = sub("(.{2})(*)", "\\1.\\2", dataset$lat) %>%  as.numeric()
+dataset$long = sub("(.{1})(*)", "\\1.\\2", dataset$long) %>%  as.numeric()
+```
+
+
+## Here we pick a random row from the dataset:
+
+```{r}
+set.seed(123)
+index = sample(nrow(dataset),1)
+Pick1Sample = dataset[index,]
+Pick1Sample[,1:6] %>% 
+  knitr::kable('html')
+  
+```
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# Make a **Comparison** 2
+
+.pull-left[
+
+If you just .blue[do not really care] about the 
+Location, and all of the conforts then: 
+
+```{r highlight.output=c(4,5,6,7)}
+SimpleQuery = dataset %>%
+ filter(price >= 2400L & price <= 2600L) %>%
+ filter(nroom %in% c("2","3")) %>%
+ filter(sqmeter >= 90L & sqmeter <= 110L) %>%
+ filter(condom >= 350L & condom <= 650L)
+SimpleQuery[,1:5]
+```
+
+```{r highlight.output=c(1), echo=FALSE}
+dim(SimpleQuery)[1]/dim(dataset)[1]
+```
+
+]
+.pull-right[
+
+But If you .red[**DO CARE**]
+
+
+```{r highlight.output=c(4)}
+SimpleQuery2 = dataset %>%
+ filter(price >= 2400L & price <= 2600L) %>%
+ filter(nroom %in% c("2","3")) %>%
+ filter(sqmeter >= 90L & sqmeter <= 110L) %>%
+ filter(condom >= 350L & condom <= 650L) %>% 
+ filter(lat>= 45.4720	 & lat <= 45.4810	 ) %>% 
+ filter(long>= 9.17650 & long <= 9.17960)
+SimpleQuery2[,1:5]
+
+```
+
+*Our random obs... ^^*
+]
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# So ...
+
+1. you .red[*can't*] compare the offer you see in front of you with others
+
+1. you .red[*can't*] really verify the house  -  trust the real estate agent
+
+1. you .red[*can't*] even each time grab a train-plane to check
+
+# .center[Now?]
+
+
+
+
+
+
+
+
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# Why don't we just...
+
+1. Elaborate a tool that given some chars, computes the *estimated price* for that House
+
+--
+  
+1. Build an application that is easy to understand and to use 
+
+--
+  
+1. That can Give me a general overview of how distant my apt is from my .red[*Core Business*]
+  
+--
+  
+1. ... Also fancy, why not?
+  
+---
+background-image: url(https://media.giphy.com/media/5z0cCCGooBQUtejM4v/giphy.gif)
+background-size: 500px
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+  
+# To Do ⚔ Doing
+  
+.pull-left[
+1. Get data, **ETL**;
+    
+1. Preliminary **EDA**;
+    
+1. Create an online application;
+    
+1. Elaborate the **Model**;
+    
+1. Slides to present the work;
+    
+  ]
+
+.pull-right[
+1. **Scraping**<sup>[1]</sup> functions;
+  
+1. **ggplot2** & **Plotly** EDA;
+  
+1. Build [Shiny](https://rstudio.com/products/shiny/) application;
+  
+1. [H20](https://spark.rstudio.com/guides/h2o/) auto ML;
+  
+1. **xaringan**<sup>[2]</sup> slideshow to make it fancier!;
+  ]
+
+.footnote[
+  [1] See the whole [Source Code](https://github.com/NiccoloSalvini/Web-Scraping/blob/master/Progetto%20di%20Computational.R) for the scraping 
+  
+  [2] See [xaringan](https://github.com/yihui/xaringan/) references
+  ]
+
+---
+background-image: url(https://i.makeagif.com/media/6-20-2016/Si-tXL.gif)
+background-size: 400px
+
+# WAIT, but first why KiWi? 
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+  
+# .green[KiWi] bird 
+  
+- .green[**KiWi**] or kiwis are flightless birds native to New Zealand, in the genus Apteryx and family Apterygidae. Approximately the size of a domestic chicken, kiwi are by far the smallest living ratites (which also consist of ostriches, emus, rheas, and cassowaries)..
+
+--
+
+
+- The .green[**KiWi**] is unfortunately an animal at risk of *extinction <sup>[3]</sup>* due to hunting and also due to the introduction in New Zealand of the opossum, an animal that has become a predator, attacking the adults and devouring the eggs. To save the kiwi this animal is now bred in captivity.
+
+--
+
+- When the .green[**KiWi**] <sup>[2]</sup> female lays eggs something really amazing happens the female it is able to generate only one egg at a time of large dimensions which can almost be equal to the same adult animal size. But then the male, not the female, hatches the eggs.
+
+
+
+.footnote[
+  [1] See [here](https://www.greenme.it/informarsi/animali/kiwi-animale/) to find some other info 
+  
+  [2] Check [KiWi](https://it.wikipedia.org/wiki/Apteryx) for more references
+  
+  [3] Donate @[Here](https://www.theguardian.com/world/2018/jun/01/save-kiwi-new-zealand-protect-bird-species) to support the specie
+  ]
+
+
+---
+background-image: url(https://assets3.thrillist.com/v1/image/2624055/size/tmg-article_tall.jpg)
+background-size: 800px
+
+---
+background-image: url(https://www.contiki.com/six-two/wp-content/uploads/2019/06/0208NWZD2018-1.jpg)
+background-size: 800px
+
+---
+background-image: url(https://thumbs.gfycat.com/ThinAmpleKingfisher-size_restricted.gif)
+background-size: 700px
+
+---
+  
+  
+# So what KiWi bird and Apt research in Milan have in common?
+- They are both into an **Extinction Crisis**
+
+--
+  
+- Somewhat it seems you are the most interested part into your relationship (*kiwi father* & *kiwi mother* **against** *household/agency* & *tenants*)
+
+--
+  
+- When .green[**KiWi**] gets into a relationship it stays there for 20 years. Yep, that is what happens when you signs a 4+4 rental
+---
+class: inverse, middle, center
+
+# Scraping Functions
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+  
+#The very **beginning** part 1
+  
+- It all starts from a very basic URL, let's call it *Category*
+```{r tidy=TRUE}
+url  = "https://www.immobiliare.it/affitto-case/milano/?criterio=rilevanza&localiMinimo=1&localiMassimo=5&idMZona[]=10046&idMZona[]=10047&idMZona[]=10053&idMZona[]=10054&idMZona[]=10057&idMZona[]=10059&idMZona[]=10050&idMZona[]=10049&idMZona[]=10056&idMZona[]=10055&idMZona[]=10061&idMZona[]=10060&idMZona[]=10070&idMZona[]=10318&idMZona[]=10296&idMZona[]=10069"
+
+```
+
+--
+
+- Then you generate all the remaming links starting from the **first** (*URL*) with the `str_c` function adding a piece of string in the last part, It stops at the 110<sup>th</sup> page
+```{r tidy=FALSE}
+list.of.pages.imm = c(url, str_c(url, '&pag=', 2:110))
+list.of.pages.imm[2:8] %>% str_sub(-10,-1)
+```
+
+--
+
+- From that links we are going to pick just some info
+ 1. **Text**
+ 1. **Price**
+ 1. **Rooms**
+ 1. **Sq Meters**
+ 1. **Primary Key**
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8
+
+# The very **beginning** part 2
+
+- I could not scrape the total of the data I need, basically for *2* main *reasons*:
+ 2. *Sometimes they are not present*
+ 2. *They are not all the data that I am looking for*
+
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# **Scrape** the price!
+```{r highlight.output=c(1)}
+scrapeprice.imm = function(url){
+  
+    x = GET(url, add_headers("user-agent" = "Gov employment data 
+                                  scraper ([[niccopos@hotmail.it])"))
+    web = read_html(x) %>% 
+      html_nodes(css = ".lif__item:nth-child(1)") %>% 
+      html_text() %>%
+      str_replace_all("€","") %>% 
+      str_replace_all("\\.","") %>% 
+      str_trim() %>%  
+      str_extract( "\\-*\\d+\\.*\\d*") %>%  
+      str_replace_na() %>% 
+      str_replace_all("NA", "Prezzo Su Richiesta")
+    return(web)
+}
+```
+
+This is the [URL](https://www.immobiliare.it/affitto-case/milano/?criterio=rilevanza&localiMinimo=1&localiMassimo=5&idMZona[]=10046&idMZona[]=10047&idMZona[]=10053&idMZona[]=10054&idMZona[]=10057&idMZona[]=10059&idMZona[]=10050&idMZona[]=10049&idMZona[]=10056&idMZona[]=10055&idMZona[]=10061&idMZona[]=10060&idMZona[]=10070&idMZona[]=10318&idMZona[]=10296&idMZona[]=10069), verify the prices 
+
+```{r echo=FALSE, warning=FALSE}
+plan(multisession)
+some_urls = list.of.pages.imm[1:2] %>%  furrr::future_map(scrapeprice.imm) %>%  unlist
+head(some_urls,25) 
+```
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# **Scrape** the rooms!
+```{r tidy=FALSE, eval=require('furrr'), highlight.output=c(1,4,9)}
+scraperooms.imm = function(url){
+    
+    x <- GET(url, add_headers("user-agent" = "Gov employment data scraper ([[niccopos@hotmail.it])"))
+    web = read_html(x) %>% 
+      html_nodes(css = ".lif__item:nth-child(2) .text-bold") %>% 
+      html_text() %>% 
+      str_trim() %>% 
+      as.numeric()
+    
+    return(web)
+  }
+```
+
+```{r echo=FALSE, warning=FALSE}
+plan(multisession)
+some_others = list.of.pages.imm[1:2] %>%  furrr::future_map(scraperooms.imm) %>%  unlist
+head(some_others,25) 
+```
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# Here it goes for all the other *Functions* 
+- for all the other data you need [**slide: the very beginning part 1**]
+
+--
+
+- Then you need a function that **aggregrates** the *sub-functions* you defined before.
+
+```{r tidy=FALSE}
+ get.data.caturl = function(urls){
+    ad     = scrapetext.imm(urls)
+    price  = scrapeprice.imm(urls)
+    room   = scraperooms.imm(urls)
+    sqmeter  = scrapespace.imm(urls)
+    primar = scrapeprimarykey.imm(urls)
+    
+    combine = tibble(adtext  = ad,
+                     monthlyprice   = price, 
+                     nroom    = room,
+                     sqmeter = sqmeter,
+                     primary = primar)
+    combine %>%
+      select(primary, sqmeter, nroom, adtext, monthlyprice, vetrina)
+    return(combine) 
+ }
+ 
+```
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# The **Advanced** part 1 
+
+- Now you are looking for information inside the single apt address, here they are some from the **1**<sup>st</sup> page of immobiliare, if you do not trust us you can **verify it**, it is *real-time* 
+
+```{r echo=FALSE, warning=FALSE}
+scrapehref.imm = function(url){
+    
+    x <- GET(url, add_headers('user-agent' = 'Gov employment data scraper ([[niccopos@hotmail.it])'))
+    web = read_html(x) %>% 
+        html_nodes(css = '.text-primary a') %>% 
+        html_attr('href') %>%
+        as.character()
+    return(web)
+}
+```
+
+
+
+```{r highlight.output=c(1,4,9), echo=FALSE}
+plan(multisession)
+singles = list.of.pages.imm[1] %>% furrr::future_map(scrapehref.imm) %>% unlist 
+singles[1:15]
+```
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 8%
+
+# The **Advanced** part 2 
+
+- Now you get the access to be in the single link apt, that pretty looks like that: 
+
+--
+
+```{r}
+browseURL(url = url)
+```
+
+.footnote[
+[1] Check [here](https://www.immobiliare.it/annunci/77198460/) to single link for the house 
+]
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# The **Advanced** part 2 
+- For all the information you have seen there a specific function that picks up that
+ 1. **Latitude**                --> scrapelat.imm(html) 
+ 1. **Longitude**               --> scrapelong.imm(html)
+ 1. **Condominium cost**        --> scrapecondom.imm(html)
+ 1. **The Floor**               --> scrapefloor.imm(html)
+ 1. **The Age of the building** --> scrapeage.imm(html)
+ 1. *...*
+ 
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# Here it is one of them
+
+- *Header* spoofing 
+- *CSS* query of the whole page
+- *Looping* into the page searching for "piano"
+- Then if it present `paste0` the element, otherwise set the *NA*
+
+
+```{r highlight.output= c(1,4,9)}
+scrapefloor.imm = function(singolourl){
+  Sys.sleep(0.4)
+      x = GET(singolourl, add_headers('user-agent' = 'Gov employment data scraper ([[niccopos@hotmail.it])')) #<<
+      web = read_html(x) %>%
+        html_nodes(css ='.section-data .col-xs-12 .col-xs-12') %>% #<<
+        html_text() %>%
+        str_trim()
+      m   = vector()
+      for(i in 1:length(web)){ #<<
+        if(web[i]=="Piano"){
+          m[1] = paste0(web[i+1])} 
+        else {m[1] == NULL}
+      }
+      m[is_empty(m)] = NA
+      return(m)}
+```
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# How it behaves?
+
+```{r highlight.output=c(1,4,9)}
+floors = singles %>% furrr::future_map(scrapefloor.imm) %>%  unlist
+head(floors, n=15)
+```
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# ... And that Goes on for all the others
+
+Now, once again, build the aggregating function for the *second* type obs.
+
+--
+
+# **DO NOT SCARE YOURSLEF**
+
+- It is somewhat you have *already seen* previuos 
+
+--
+
+- It *aggregates* all the different function defined
+ 
+--
+ 
+- All the functions pretty look like the same except for small changes (".red[piano]", ".red[ac]", ".red[heating system]")
+---
+```{r tidy=TRUE}
+get.data.catsing = function(html){
+  id   = scrapehouse.ID(html)
+  lat  = scrapelat.imm(html)
+  long = scrapelong.imm(html)
+  location = take.location(html)
+  condom = scrapecondom.imm(html)
+  buildage = scrapeagebuild.imm(html)
+  floor = scrapefloor.imm(html)
+  indivsapt = scrapetype.imm(html)
+  locali= scrapecompart.imm(html)
+  tpprop = scrapeproptype.imm(html)
+  status = scrapestatus.imm(html)
+  heating = scrapeheating.imm(html)
+  ac = scrapeaircondit.imm(html)
+  date = scrapeaddate.imm(html)
+  aptchar = scrapeaptchar.imm(html)
+  photosnum = scrapephotosnum.imm(html)
+  age = scrapeage.imm(html)
+  enclass = scrapeenclass.imm(html)
+  contr = scrapecontr.imm(html)
+  combine = tibble(ID        = id,
+                   LAT       = lat, 
+                   LONG      = long,
+                   LOCATION  = location,
+                   CONDOM    = condom,
+                   BUILDAGE  = buildage,
+                   FLOOR     = floor,
+                   INDIVSAPT = indivsapt,
+                   LOCALI    = locali,
+                   TPPROP    = tpprop,
+                   STATUS    = status,
+                   HEATING   = heating,
+                   AC        = ac,
+                   DATE      = date,
+                   APTCHAR   = aptchar,
+                   PHOTOSNUM = photosnum,
+                   AGE       = age,
+                   ENCLASS   = enclass,
+                   CONTR     = contr)
+  combine %>% 
+    select(ID, LAT, LONG, LOCATION, CONDOM, FLOOR, INDIVSAPT, LOCALI, TPPROP, STATUS, HEATING,
+           AC, DATE, APTCHAR, PHOTOSNUM, AGE, ENCLASS, BUILDAGE, CONTR)
+  return(combine) 
+}
+```
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# Why did you this in that way?
+## 2 main *factors*:
+
+- Looping into the page was a way to undergo to the issues of missing values, the CSS query can be very precise but sometimes information are placed in the wrong order
+- When you unlist a `vec` if there is inside a *NULL* then the vect is crunched and you loose some dimensionality, so I set NULL values equal to NA in order to have same lenght vectors
+---
+# Then datasets become two!
+
+1. The one scraped from the category    **SLIDE** : 39
+1. The one scraped from the single link **SLIDE** : 44
+
+--
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# Done
+
+data is available in a MySql database.
+I have it also in local:
+
+
+```{r echo=FALSE}
+dataset = read_excel('dataset finale.xlsx') 
+DT::datatable(head(dataset, 10))
+```
+
+```{r data wrang, eval=require('readxl'), echo=FALSE, warning=FALSE, tidy=FALSE}
+dataset$tpprop = as.factor(dataset$tpprop)
+dataset$status = as.factor(dataset$status)
+dataset$heating = as.factor(dataset$heating)
+dataset$ac = as.factor(dataset$ac)
+dataset$enclass = as.factor(dataset$enclass)
+dataset$contr = as.factor(dataset$contr)
+dataset$furnished = as.factor(dataset$furnished)
+dataset$kitchen = as.factor(dataset$kitchen)
+dataset$nroom = as.factor(dataset$nroom)
+dataset$lat = sub("(.{2})(*)", "\\1.\\2", dataset$lat) %>%  as.numeric()
+dataset$long = sub("(.{1})(*)", "\\1.\\2", dataset$long) %>%  as.numeric()
+```
+
+
+---
+class: inverse, middle, center
+
+# EDA part
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+
+# How it is composed 
+```{r tidy= FALSE, eval= require('DataExplorer')}
+DataExplorer::introduce(dataset)
+```
+--
+
+here it is a [report](report.html) of the composition of the dataset, *Let's take a look*
+
+.pull-left[
+- Basic Statistics;
+ - Raw Counts;
+ - Percentages;
+- Data Structure;
+- Missing Data Profile;
+    
+    ]
+
+.pull-right[
+- Univariate Distribution;
+ - Histogram;
+ - Bar Chart (by frequency);
+ - QQ Plot;
+- Correlation Analysis;
+- Principal Component Analysis
+  ]
+
+---
+background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
+background-size: 100px
+background-position: 90% 6%
+# Map, blue points are **Houses**
+
+```{r out.width='100%', fig.height=7, eval=require('leaflet'), warning= FALSE, echo=FALSE}
+leaflet() %>%
+  setView(lng = 9.18994, lat = 45.4703, zoom = 13) %>% 
+  addProviderTiles(providers$OpenStreetMap.Mapnik) %>%
+  addCircles(dataset$long, dataset$lat, label = paste0('this is the price', as.character(dataset$price)))
+```
+---
+# Some Other `Explorations`
+
+```{r out.width='100%', fig.height=7, warning= FALSE, echo=FALSE, fig.retina= 3}
+ddataset = dataset %>%
+ filter(dataset$price >= 500L & dataset$price <= 15128L)
+m = ggplot(ddataset) +
+ aes(x = ddataset$price, fill = ddataset$nroom) +
+ geom_density(adjust = 1L) +
+ scale_fill_hue() +
+ labs(x = "price", y = "nrooms", title = "Density Plot", subtitle = "price VS nrooms")
+ggplotly(m)
+```
+
+
+---
+# Floor `investigation`
+
+```{r out.width='100%', fig.height=7, warning= FALSE, echo=FALSE, fig.retina= 3}
+
+floordataset = dataset %>%
+  filter(price >= 500L & price <= 10581L) %>%
+  filter(!(floor %in% c("NA", "12", "10")))
+
+p <- ggplot(data = floordataset,aes(x=floordataset$nroom, y=floordataset$price)) +
+  geom_boxplot(fill=NA, alpha=0.5) +
+  geom_jitter(aes(colour=floordataset$floor, text=paste("price is good")), width=0.25, alpha=0.5) +
+  geom_hline(yintercept=mean(floordataset$price)) +
+  labs(title = "How much the floors affect the price given the number of rooms",
+       x = "nroom",
+       y = "price")
+ggplotly(p)
+```
+
+---
+# `Facet Plot` Condominium
+
+```{r out.width='100%', fig.height=7, warning= FALSE, echo=FALSE, fig.retina= 3}
+ldataset <- dataset %>%
+ filter(price >= 500L & price <= 5047L) %>%
+ filter(condom >= 0L & condom <= 1030L) %>%
+ filter(!(floor %in% c("NA", "12", "10")))
+
+q = ggplot(ldataset) +
+ aes(x = price, y = condom, colour = condom, size = condom) +
+ geom_point() +
+ scale_color_gradient() +
+ theme_minimal() +
+ facet_wrap(vars(nroom), scales = "free_x")
+
+ggplotly(q)
+```
+
+
+---
+# **Narrow** Boxplot 
+
+
+```{r out.width='100%', fig.height=7, warning= FALSE, echo=FALSE, fig.retina= 3}
+vdataset = dataset %>%
+ filter(condom >= 200L & condom <= 500L) %>%
+ filter(!(heating %in% "Unknown")) %>%
+ filter(!(ac %in% c("Assente", "NA", "Assente, solo freddo", "Predisposizione impianto, solo freddo", 
+    "Predisposizione impianto", "Presente", "Assente, solo caldo")))
+
+r = ggplot(vdataset) +
+ aes(x = nroom, y = condom, fill = nroom) +
+ geom_boxplot() +
+ scale_fill_hue() +
+ theme_minimal() +
+ facet_wrap(vars(floor), scales = "free")
+ggplotly(r)
+```
+
+---
+# Heating **vs** Condominium
+```{r out.width='100%', fig.height=7, warning= FALSE, echo=FALSE, fig.retina= 3}
+s = ggplot(vdataset) +
+ aes(x = heating, y = condom, fill = heating) +
+ geom_boxplot() +
+ scale_fill_hue() +
+ theme_minimal()
+ggplotly(s)
+```
+
+---
