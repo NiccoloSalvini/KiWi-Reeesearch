@@ -1,7 +1,7 @@
 ---
 title: "KiWi-Search"
 subtitle: "House Price Comparator"
-author: "Diedziul ⚔ Salvini"
+author: "Dziedziul ⚔ Salvini"
 institute: "Universita Cattolicà Del Sacro Cuore"
 date: "2019/11/18 (updated: `r Sys.Date()`)"
 output:
@@ -61,7 +61,7 @@ background-position: 90% 8%
   
 --
   
-- Where do I need my apt to be? --> **select zone** 
+- Where do I need my apt to be? --> **select zone** within *Circonvalla* let's say
   
 --
   
@@ -87,12 +87,12 @@ background-position: 90% 8%
 
 ---
 background-image: url(https://video-images.vice.com/_uncategorized/1498664480808-Screen-Shot-2017-06-28-at-164017.png)
-background-size: 700px
+background-size: contain
 ---
 # Odds
 
 Now let's try this:
-*TRY* to compute the probability to find an apartement given some certain characteristics (even location) equal to someone else with the **SAME** chars
+`TRY` to compute the probability to find an apartement given some certain characteristics (even location) equal to someone else with the **SAME** chars
 
 - Randomly select 1 obs from the dataset
 
@@ -201,14 +201,15 @@ background-position: 90% 8%
 
 1. you .red[*can't*] even each time grab a train-plane to check
 
-# .center[Now?]
 
 
+# .center[Now...]
+--
 
-
-
-
-
+# .center[**Am I going to pay a .red[Fair] price for an apartment I plan to rent?**]
+---
+background-image: url(https://media0.giphy.com/media/3o6Mbj2w67HnPQKgcE/giphy.gif)
+background-size: cover
 
 
 ---
@@ -234,7 +235,7 @@ background-position: 90% 8%
   
 ---
 background-image: url(https://media.giphy.com/media/5z0cCCGooBQUtejM4v/giphy.gif)
-background-size: 500px
+background-size: contain
 
 ---
 background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
@@ -292,7 +293,7 @@ background-position: 90% 8%
 --
 
 
-- The .green[**KiWi**] is unfortunately an animal at risk of *extinction <sup>[3]</sup>* due to hunting and also due to the introduction in New Zealand of the opossum, an animal that has become a predator, attacking the adults and devouring the eggs. To save the kiwi this animal is now bred in captivity.
+- The .green[**KiWi**] is unfortunately an animal at risk of *extinction<sup>[3]</sup>* due to hunting and also due to the introduction in New Zealand of the opossum, an animal that has become a predator, attacking the adults and devouring the eggs. To save the kiwi this animal is now bred in captivity.
 
 --
 
@@ -311,15 +312,15 @@ background-position: 90% 8%
 
 ---
 background-image: url(https://assets3.thrillist.com/v1/image/2624055/size/tmg-article_tall.jpg)
-background-size: 800px
+background-size: cover
 
 ---
 background-image: url(https://www.contiki.com/six-two/wp-content/uploads/2019/06/0208NWZD2018-1.jpg)
-background-size: 800px
+background-size: cover
 
 ---
-background-image: url(https://thumbs.gfycat.com/ThinAmpleKingfisher-size_restricted.gif)
-background-size: 700px
+background-image: url(https://media2.giphy.com/media/QmM2VFfudLjoc/giphy.gif)
+background-size: cover
 
 ---
   
@@ -371,15 +372,15 @@ list.of.pages.imm[2:8] %>% str_sub(-10,-1)
 ---
 background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
 background-size: 100px
-background-position: 90% 8
+background-position: 90% 8%
 
 # The very **beginning** part 2
 
 - I could not scrape the total of the data I need, basically for *2* main *reasons*:
  2. *Sometimes they are not present*
  2. *They are not all the data that I am looking for*
-
-
+ 
+ ![McFitti](https://media0.giphy.com/avatars/TEAMFITTI/DGFe5RBetFM6.gif)
 ---
 background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
 background-size: 100px
@@ -651,14 +652,21 @@ background-position: 90% 6%
 ## 2 main *factors*:
 
 - Looping into the page was a way to undergo to the issues of missing values, the CSS query can be very precise but sometimes information are placed in the wrong order
-- When you unlist a `vec` if there is inside a *NULL* then the vect is crunched and you loose some dimensionality, so I set NULL values equal to NA in order to have same lenght vectors
+- When you unlist a   `vec`   if there is inside a   `NULL`   then the vect is crunched and you loose some dimensionality, so I set   `NULL`   values equal to   `NA`   in order to have same lenght vectors
 ---
 # Then datasets become two!
+
+
+--
+
 
 1. The one scraped from the category    **SLIDE** : 39
 1. The one scraped from the single link **SLIDE** : 44
 
---
+
+
+![datasets](https://i.stack.imgur.com/Zj9zP.png)
+
 
 ---
 background-image: url(https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png)
@@ -673,7 +681,11 @@ I have it also in local:
 
 ```{r echo=FALSE}
 dataset = read_excel('dataset finale.xlsx') 
-DT::datatable(head(dataset, 10))
+DT::datatable(
+  head(dataset[,1:5], 10),
+  fillContainer = FALSE, options = list(pageLength = 8)
+)
+
 ```
 
 ```{r data wrang, eval=require('readxl'), echo=FALSE, warning=FALSE, tidy=FALSE}
@@ -776,7 +788,7 @@ ggplotly(p)
 # `Facet Plot` Condominium
 
 ```{r out.width='100%', fig.height=7, warning= FALSE, echo=FALSE, fig.retina= 3}
-ldataset <- dataset %>%
+ldataset = dataset %>%
  filter(price >= 500L & price <= 5047L) %>%
  filter(condom >= 0L & condom <= 1030L) %>%
  filter(!(floor %in% c("NA", "12", "10")))
@@ -787,7 +799,6 @@ q = ggplot(ldataset) +
  scale_color_gradient() +
  theme_minimal() +
  facet_wrap(vars(nroom), scales = "free_x")
-
 ggplotly(q)
 ```
 
