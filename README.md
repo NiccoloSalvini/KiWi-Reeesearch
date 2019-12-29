@@ -3,7 +3,7 @@
 ### Designed by Consumers for Consumers
 
 --> see the slides [**HERE**](https://kiwiresearch.netlify.com/#1) <--
-
+--> see the Shiny APP [**HERE**](https://jedrzejdziedziul.shinyapps.io/Housing/) <--
 
 ```
 libs = c("rvest", "magrittr", "stringr", "httr",
