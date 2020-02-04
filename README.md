@@ -70,10 +70,8 @@ Now let's try this:
 
 # Some snapshots from the App   
 
+<img src="./snapshot/screenshot 1.png" />
+<img src="./snapshot/screenshot 2.png" />
+<img src="./snapshot/screenshot 3.png" />
+<img src="./snapshot/screenshot 4.png" />
 
-
-
-![snap1](./snapshot/screenshot 1.png)
-![snap2](./snapshot/screenshot 2.png)
-![snap3](./snapshot/screenshot 3.png)
-![snap4](./snapshot/screenshot 4.png)
