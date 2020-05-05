@@ -1,77 +1,95 @@
-# KiWi Logo
 
-### Designed by Consumers for Consumers
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
---> see the slides [**HERE**](https://kiwiresearch.netlify.com/#1) <--
---> see the Shiny APP [**HERE**](https://jedrzejdziedziul.shinyapps.io/Housing/) <--
+# KiWi Reeesearch <img src="https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png" align="right" height="80" />
 
-```{r}
+*author*: **[Niccolò Salvini](https://niccolosalvini.netlify.app/)** ,
+**[Jędrzej Dziedziul](https://www.linkedin.com/in/jedrzej-dziedziul/)**
+
+*date*: 2020-05-06
+
+<br> <br>
+
+## Deployment happens:
+
+–\> see the *slides* **[HERE](https://kiwiresearch.netlify.com/#1)** –\>
+see the *Shiny APP*
+**[HERE](https://jedrzejdziedziul.shinyapps.io/Housing/)**
+
+## Description:
+
+This tool has been designed to explore apartements in Milan next to your
+preferred location and compute a monthly rent price estimation given the
+spatial coordinates and the expected characteristics of the house, such
+as: rooms square meters. It is composed by a `Shiny` deployed from a
+bitbucket repo into [shinyapps.io](https://www.shinyapps.io/) and a set
+of `xaringan` slides deployed on [Netlify](https://www.netlify.com/).
+House data are scraped from [immobiliare](https://www.immobiliare.it/).
+Full explanation on the slides.
+
+## Visuals:
+
+<p align="center">
+
+<img src="snapshot/screenshot 1.png" width="1906" />
+
+</p>
+
+<p align="center">
+
+<img src="snapshot/screenshot 2.png" width="1913" />
+
+</p>
+
+<p align="center">
+
+<img src="snapshot/screenshot 3.png" width="1913" />
+
+</p>
+
+<p align="center">
+
+<img src="snapshot/screenshot 4.png" width="1913" />
+
+</p>
+
+## Dependecies
+
+``` r
 libs = c("rvest", "magrittr", "stringr", "httr",
 "furrr", "plotly", "ggplot2", "DT", "readxl", "dplyr")
-lapply(libs, require, character.only = TRUE)
+
+new.packages = libs[!(libs %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
 ```
---------------------------------
-![LOGO](https://i.pinimg.com/originals/1b/db/46/1bdb46cf377ae1c06617d6b9bfc54793.png){width=250px}
----------------------------------
 
-# Accomodation in Milan is a Mess
-## Socio-Economic Circumstances:
-- Too much *Demand* wrt to the available *Offer*
+## Usage:
 
-- Rent Prices, for the same reason, are **Overshooted**
-  
-- **Condominium** is a really tough component of the monthly budget and actually It does not make so much sense
-  
-- Asymmetry of information between you and the agency Advisor
-  
-- Time factor: you are in a Hurry, houseolds are **Not**
-  
----
+the first tab-panel in the tab-set let you explore the available houses
+on the Milano house market, then once you have find the location of the
+apartement you right click it. This will assign a marker in `leaflet`
+object. This marker will be cached in the second tab panel, the *price
+prediciton calculator*, where you can also specify other characteristics
+of the desired house. An autoML model will give the estimation in the
+lower down part on the left.  
+In the right drop-down column you can discover other further options to
+select and the autoML will do its job in parallel.
 
-# The questions you come up 
-## The most of us:
-  
-- Where do phisically I have to search?  --> **Immobiliare.it**<sup>[1]</sup>
-  
-- Where do I need my apt to be? --> **select zone**
-  
-- Once you have spotted it '(if you made it') you should verify *if it is a good deal*
+## Project status:
 
-  
-- Are they trying to steal my money? Am I going to pay a fair price?
-  
-  
-- Hey, **I REALLY NEED SOMEONE TO TELL ME IF IT IS GOOD OR NOT**, let's find something which is similar to my option, oh I would say a *Comparable*
+this project is still `IN ITINERE`, but it has stopped since my
+university class is completed.
 
-- Do you know how many are the chances to find a **Comparable** ?
+## Next features:
 
+  - implement auto-scraping functions
+  - choose boostrap .css style
+  - better
+UX
 
-[1] Here it is [immobiliare](https://www.immobiliare.it/), n1 player in online mrkt
+## License:
 
-
------------------------
-
-# Odds
-
-Now let's try this:
-*TRY* to compute the probability to find an apartement given some certain characteristics (even location) equal to someone else with the **SAME** chars
-
-- Randomly select 1 obs from the dataset
-
-- Filter the dataset given the characteristics *(rand selct)* both .red[*Streched*] and .blue[*Strict*]
-
-- Compare the `len` output of the `vec`  wrt to dataset `len`
-
-
-----------------------
-
-
-
-
-# Some snapshots from the App   
-
-<img src="./snapshot/screenshot 1.png" />
-<img src="./snapshot/screenshot 2.png" />
-<img src="./snapshot/screenshot 3.png" />
-<img src="./snapshot/screenshot 4.png" />
-
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licenza Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />Quest’opera
+è distribuita con Licenza
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative
+Commons Attribuzione 4.0 Internazionale</a>.
